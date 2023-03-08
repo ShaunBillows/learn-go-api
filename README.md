@@ -1,0 +1,1 @@
+DB_CONNECTION_STRING=<username>:<password>@tcp(<host>:<port>)/<database_name>?charset=utf8mb4&parseTime=True&loc=Local
