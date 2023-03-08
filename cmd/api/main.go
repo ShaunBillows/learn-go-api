@@ -2,11 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/joho/godotenv"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
+	"github.com/ShaunBillows/learn-go-api-v2/internal/database"
 	"log"
-	"os"
 )
 
 type Question struct {
@@ -21,17 +18,10 @@ type Question struct {
 
 func main() {
 
-	// Get data source name from env variable
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-	dsn := os.Getenv("DB_CONNECTION_STRING")
-
 	// Connect to MySQL db
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	db, err := database.Connect()
 	if err != nil {
-		log.Fatal("failed to connect database")
+		log.Fatal(err)
 	}
 
 	// Migrate the schema

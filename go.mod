@@ -1,4 +1,4 @@
-module learn-go.github.com
+module github.com/ShaunBillows/learn-go-api-v2
 
 go 1.18
 
