@@ -1,20 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"github.com/ShaunBillows/learn-go-api-v2/internal/database"
+	"github.com/ShaunBillows/learn-go-api-v2/internal/handlers"
+	"github.com/ShaunBillows/learn-go-api-v2/internal/models"
+	"github.com/labstack/echo/v4"
 	"log"
 )
-
-type Question struct {
-	ID               uint   `gorm:"primaryKey" json:"id"`
-	Topic            string `gorm:"not null" json:"topic"`
-	Question         string `gorm:"not null;unique" json:"question"`
-	Answer           string `gorm:"not null" json:"answer"`
-	IncorrectAnswer1 string `gorm:"not null" json:"incorrect_answer_1"`
-	IncorrectAnswer2 string `gorm:"not null" json:"incorrect_answer_2"`
-	Difficulty       uint   `gorm:"not null" json:"difficulty"`
-}
 
 func main() {
 
@@ -25,56 +17,27 @@ func main() {
 	}
 
 	// Migrate the schema
-	db.AutoMigrate(&Question{}) // pass the tables you want to migrate as args
-
-	// Create a pointer to a new Question object
-	q := &Question{
-		Topic:            "This is a test",
-		Question:         "This is a test",
-		IncorrectAnswer1: "This is a test",
-		IncorrectAnswer2: "This is a test",
-		Answer:           "This is a test",
-		Difficulty:       3,
+	// Makes sure db schema and models are in sync
+	// Accepts a list of models
+	if err := db.AutoMigrate(&models.Question{}); err != nil {
+		log.Fatal(err)
 	}
 
-	// Insert the new question into the database
-	result := db.Table("questions").Create(q)
-	if result.Error != nil {
-		log.Fatal(result.Error)
-	}
-	fmt.Printf("New question with ID %d created.\n", q.ID)
+	questionHandler := handlers.NewQuestion(db)
 
-	// Retrieve a question by ID
-	var questionByID Question
-	result = db.Table("questions").First(&questionByID, q.ID)
-	if result.Error != nil {
-		log.Fatal(result.Error)
-	}
-	fmt.Printf("Question with ID %d and Question: %s retrieved.\n", questionByID.ID, questionByID.Question)
+	e := echo.New()
 
-	// Update the retrieved question
-	questionByID.Topic = "Updated topic"
-	result = db.Table("questions").Save(&questionByID)
-	if result.Error != nil {
-		log.Fatal(result.Error)
-	}
-	fmt.Printf("Question with ID %d and Question: %s updated.\n", questionByID.ID, questionByID.Question)
+	e.GET("/", handlers.SayWelcome)
 
-	// Delete the retrieved question
-	result = db.Table("questions").Delete(&questionByID)
-	if result.Error != nil {
-		log.Fatal(result.Error)
-	}
-	fmt.Printf("Question with ID %d deleted.\n", questionByID.ID)
+	// Single record endpoints
+	e.POST("/question/create", questionHandler.Create)
+	e.DELETE("/question/delete", questionHandler.Delete)
+	e.PATCH("/question/update", questionHandler.Update)
+	e.GET("/question/read", questionHandler.Read)
 
-	// Retrieve all questions from the database
-	var questions []Question
-	result = db.Table("questions").Find(&questions)
-	if result.Error != nil {
-		log.Fatal(result.Error)
-	}
+	// Many records endpoints
+	e.GET("/question/read/all", questionHandler.ReadAll)
+	e.POST("/question/create/many", questionHandler.CreateMany)
 
-	// Print all questions in the db
-	fmt.Printf("Retrieved %d questions:\n", len(questions))
-	fmt.Println(questions)
+	e.Logger.Fatal(e.Start(":1323"))
 }
