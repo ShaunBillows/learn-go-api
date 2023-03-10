@@ -1,16 +1,17 @@
 package database
 
 import (
-	"errors"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"os"
 )
 
-var (
-	ErrLoadingEnv     = errors.New("error loading .env file")
-	ErrConnectingToDb = errors.New("failed to connect database")
+const (
+	DbConnectionString = "DB_CONNECTION_STRING"
+
+	ErrLoadingEnv     = ConnectionErr("error loading .env file")
+	ErrConnectingToDb = ConnectionErr("failed to connect database")
 )
 
 type ConnectionErr string
@@ -26,7 +27,7 @@ func Connect() (*gorm.DB, error) {
 	if err != nil {
 		return nil, ErrLoadingEnv
 	}
-	dsn := os.Getenv("DB_CONNECTION_STRING")
+	dsn := os.Getenv(DbConnectionString)
 
 	// Connect to MySQL db
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
