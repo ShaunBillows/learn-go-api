@@ -34,7 +34,7 @@ func (h *QuestionHandler) Create(c echo.Context) error {
 	question := new(models.Question)
 	// Bind the request to the struct
 	if err := c.Bind(question); err != nil { // maps data to empty question struct
-		return c.JSON(http.StatusBadRequest, responseMessage{Message: databaseErrorMessage})
+		return c.JSON(http.StatusBadRequest, responseMessage{Message: invalidJsonFormatMessage})
 	}
 	// Insert the new question into the database
 	result := h.DB.Create(question)
@@ -68,7 +68,7 @@ func (h *QuestionHandler) Delete(c echo.Context) error {
 func (h *QuestionHandler) Update(c echo.Context) error {
 	question := new(models.Question)
 	if err := c.Bind(question); err != nil {
-		return c.JSON(http.StatusBadRequest, responseMessage{Message: databaseErrorMessage})
+		return c.JSON(http.StatusBadRequest, responseMessage{Message: invalidJsonFormatMessage})
 	}
 	result := h.DB.Save(question)
 	if result.Error != nil {
@@ -81,7 +81,7 @@ func (h *QuestionHandler) ReadRandom(c echo.Context) error {
 	question := new(models.Question)
 	result := h.DB.Order("RAND()").First(question)
 	if result.Error != nil {
-		return c.JSON(http.StatusBadRequest, responseMessage{Message: invalidJsonFormatMessage})
+		return c.JSON(http.StatusBadRequest, responseMessage{Message: databaseErrorMessage})
 	}
 	return c.JSON(http.StatusOK, question)
 }
@@ -98,7 +98,7 @@ func (h *QuestionHandler) ReadAll(c echo.Context) error {
 func (h *QuestionHandler) CreateMany(c echo.Context) error {
 	questions := new([]models.Question)
 	if err := c.Bind(questions); err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, responseMessage{Message: invalidJsonFormatMessage})
 	}
 	result := h.DB.Create(&questions)
 	if result.Error != nil {
