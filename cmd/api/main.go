@@ -23,21 +23,19 @@ func main() {
 		log.Fatal(err)
 	}
 
-	questionHandler := handlers.NewQuestion(db)
+	questionHandler := handlers.NewQuestionHandler(db)
 
 	e := echo.New()
 
 	e.GET("/", handlers.SayWelcome)
 
-	// Single record endpoints
-	e.POST("/question/create", questionHandler.Create)
-	e.DELETE("/question/delete", questionHandler.Delete)
-	e.PATCH("/question/update", questionHandler.Update)
-	e.GET("/question/read", questionHandler.Read)
-
-	// Many records endpoints
-	e.GET("/question/read/all", questionHandler.ReadAll)
-	e.POST("/question/create/many", questionHandler.CreateMany)
+	e.POST("/questions", questionHandler.Create)
+	e.GET("/questions/:id", questionHandler.Read)
+	e.PATCH("/questions", questionHandler.Update)
+	e.DELETE("/questions/:id", questionHandler.Delete)
+	e.GET("/questions/random", questionHandler.ReadRandom)
+	e.GET("/questions/all", questionHandler.ReadAll)
+	e.POST("/questions/many", questionHandler.CreateMany)
 
 	e.Logger.Fatal(e.Start(":1323"))
 }
