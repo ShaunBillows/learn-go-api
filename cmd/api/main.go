@@ -5,6 +5,7 @@ import (
 	"github.com/ShaunBillows/learn-go-api-v2/internal/handlers"
 	"github.com/ShaunBillows/learn-go-api-v2/internal/models"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"log"
 )
 
@@ -27,14 +28,19 @@ func main() {
 
 	e := echo.New()
 
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"*"},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+	}))
+
 	e.GET("/", handlers.SayWelcome)
 
-	e.POST("/questions", questionHandler.Create)
-	e.GET("/questions/:id", questionHandler.Read)
-	e.PATCH("/questions", questionHandler.Update)
-	e.DELETE("/questions/:id", questionHandler.Delete)
+	e.GET("/questions", questionHandler.ReadAll)
+	e.GET("/questions/:id", questionHandler.ReadOne)
+	e.PUT("/questions/:id", questionHandler.UpdateOne)
+	e.DELETE("/questions/:id", questionHandler.DeleteOne)
+	e.POST("/questions", questionHandler.CreateOne)
 	e.GET("/questions/random", questionHandler.ReadRandom)
-	e.GET("/questions/all", questionHandler.ReadAll)
 	e.POST("/questions/many", questionHandler.CreateMany)
 
 	e.Logger.Fatal(e.Start(":1323"))

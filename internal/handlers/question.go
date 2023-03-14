@@ -5,6 +5,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 	"net/http"
+	"strconv"
 )
 
 const (
@@ -29,7 +30,7 @@ func NewQuestionHandler(db *gorm.DB) *QuestionHandler {
 	}
 }
 
-func (h *QuestionHandler) Create(c echo.Context) error {
+func (h *QuestionHandler) CreateOne(c echo.Context) error {
 	// Create empty struct from the questions model
 	question := new(models.Question)
 	// Bind the request to the struct
@@ -44,7 +45,7 @@ func (h *QuestionHandler) Create(c echo.Context) error {
 	return c.JSON(http.StatusOK, question)
 }
 
-func (h *QuestionHandler) Read(c echo.Context) error {
+func (h *QuestionHandler) ReadOne(c echo.Context) error {
 	id := c.Param("id")
 	question := new(models.Question)
 	result := h.DB.First(&question, id)
@@ -54,9 +55,8 @@ func (h *QuestionHandler) Read(c echo.Context) error {
 	return c.JSON(http.StatusOK, question)
 }
 
-func (h *QuestionHandler) Delete(c echo.Context) error {
+func (h *QuestionHandler) DeleteOne(c echo.Context) error {
 	id := c.Param("id")
-	// Delete the question with the given ID from the database
 	result := h.DB.Delete(&models.Question{}, id)
 	if result.Error != nil {
 		return c.JSON(http.StatusBadRequest, responseMessage{Message: databaseErrorMessage})
@@ -65,11 +65,16 @@ func (h *QuestionHandler) Delete(c echo.Context) error {
 
 }
 
-func (h *QuestionHandler) Update(c echo.Context) error {
+func (h *QuestionHandler) UpdateOne(c echo.Context) error {
 	question := new(models.Question)
 	if err := c.Bind(question); err != nil {
 		return c.JSON(http.StatusBadRequest, responseMessage{Message: invalidJsonFormatMessage})
 	}
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64) // can we convert directly to uint here?
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, responseMessage{Message: invalidJsonFormatMessage})
+	}
+	question.ID = uint(id)
 	result := h.DB.Save(question)
 	if result.Error != nil {
 		return c.JSON(http.StatusBadRequest, responseMessage{Message: databaseErrorMessage})
